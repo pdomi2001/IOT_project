@@ -3,6 +3,10 @@
 sep = "\t"
 # sep = ","
 
+# Indica se devo anche generare un file di testo con tutte le query sql per aggiungere 
+# i dati al database mysql
+genera_sql = False
+
 with open('registrazioni.txt') as f:
 	lines = f.readlines()
 
@@ -39,24 +43,25 @@ for riga in array_elements:
 	f1.write(riga)
 f1.close()
 
-# genero il codice sql
-f1 = open("registrazioni_new.sql", "w")
-# f1.write(sep.join(intestazione_array))
-f1.write("\n")
-for riga in array_elements2:
-	f1.write('INSERT INTO sensori (time, sender_ip, clientID, h_stanza, t_stanza, t_termosifone, count, count_wifi_c, count_mqtt_c)\n')
-	f1.write("VALUES (")
-	first = True
-	for elemento in riga:
-		if not first:
-			f1.write(', ')
-		else:
-			first = False
-		f1.write('"')
-		f1.write(elemento.replace("\n",""))
-		f1.write('"')
-	f1.write(");")
+if genera_sql == True:
+	# genero il codice sql
+	f1 = open("registrazioni_new.sql", "w")
+	# f1.write(sep.join(intestazione_array))
 	f1.write("\n")
-f1.close()
+	for riga in array_elements2:
+		f1.write('INSERT INTO sensori (time, sender_ip, clientID, h_stanza, t_stanza, t_termosifone, count, count_wifi_c, count_mqtt_c)\n')
+		f1.write("VALUES (")
+		first = True
+		for elemento in riga:
+			if not first:
+				f1.write(', ')
+			else:
+				first = False
+			f1.write('"')
+			f1.write(elemento.replace("\n",""))
+			f1.write('"')
+		f1.write(");")
+		f1.write("\n")
+	f1.close()
 
 
