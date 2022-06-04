@@ -67,7 +67,7 @@ for d in df.groupby(["date"]):
 	solo_date.append(d[0])
 
 row = 1
-axs[row].set_title("Unidità media giornaliera nel periodo")
+axs[row].set_title("Umidità media giornaliera nel periodo")
 axs[row].plot(solo_date, media_umidita, label='umidità (%)', linestyle = '-')
 axs[row].set_ylabel('Umidità (%)')
 axs[row].grid(True)
