@@ -17,7 +17,7 @@ fig.set_facecolor('lightsteelblue')
 fig.tight_layout()
 # df_filtered = df[(df.clientID=='iot_paride_2') & (df.time=="2022-04-05 10:2")]
 
-giorno = 20220427
+giorno = 20220428
 giorni_precedenti = 2
 
 # inizio_periodo = 20220407000000
@@ -30,11 +30,18 @@ inizio_periodo_prec = (giorno - giorni_precedenti) * 1000000
 def converti_data_ora(x):
 	# ora = str(x.time % 1000000)
 	ora = ("%06d" % (x.time % 1000000))
+	# print (x.time)
 	# print (ora[0:2] + ":" + ora[2:4] + ":" + ora[4:6])
 	# return (ora[0:2] + ":" + ora[2:4] + ":" + ora[4:6])
 	return (x.time % 1000000)
 
+#aggiungo un campo nel quale è presente solo l'orario
 df['time2']  = df.apply(converti_data_ora, axis = 1)
+
+#aggiungo un campo nel quale è presente solo la data
+df['date']  = df.apply(lambda x: str(x.time / 1000000)[:8] , axis = 1)
+
+print(df.head())
 
 df_filtered_1 = df[
 									(df.clientID=='iot_paride_1')
@@ -186,5 +193,5 @@ axs[zona_x, zona_y].grid(True)
 # df[df.clientID=='iot_paride_2'].plot(x="time", y="t_termosifone", color="g")
 # df[df.clientID=='iot_paride_3'].plot(x="time", y="t_termosifone", color="b")
 
-
+plt.savefig("test.png");
 plt.show()
