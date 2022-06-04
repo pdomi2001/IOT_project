@@ -20,7 +20,10 @@ for line in lines:
 				dati = elemento.split("=")
 				if len(array_elements) == 0:
 					if len(dati) > 1:
-						intestazione_array.append(dati[0])
+						if dati[0] == "count":
+							intestazione_array.append("count_sent")
+						else:
+							intestazione_array.append(dati[0])
 				if len(dati) == 1:
 					array_singolo_elemento.append(dati[-1][:19].replace("-","").replace(".","").replace(":","").replace(" ",""))
 				else:
