@@ -1,13 +1,9 @@
 #define DHTTYPE DHT11   // DHT 11
-
 #define dht_dpin 5
 DHT dht(dht_dpin, DHTTYPE); 
-double t = 0.0;
-double h = 0.0;
 
 #include <ArduinoMqttClient.h>
 #include "arduino_secrets.h"
-
 
 // costanti
 char ssid[]  = SECRET_SSID;   // your network SSID (name)
@@ -170,7 +166,7 @@ void ReadSensors() {
   t_stanza = dht.readTemperature();   
   
   t_termosifone = ds.getTempC();
-  if (isnan(h) || isnan(t)) 
+  if (isnan(h_stanza) || isnan(t_stanza)) 
   {
     Serial.println("Failed to read from DHT sensor!");
   }

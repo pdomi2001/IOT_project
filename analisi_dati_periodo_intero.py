@@ -31,42 +31,34 @@ media_temperature = df[(df.clientID=='iot_paride_2')].groupby(["date"])["t_stanz
 minima_temperatura = df[(df.clientID=='iot_paride_2')].groupby(["date"])["t_stanza"].min()
 massima_temperatura = df[(df.clientID=='iot_paride_2')].groupby(["date"])["t_stanza"].max()
 
+# calcolo l'umidità media usando i dati del modulo numero 2
 media_umidita = df[(df.clientID=='iot_paride_2')].groupby(["date"])["h_stanza"].mean()
-# print (conteggio_dati.head())
-# print (medie_1)
 
-# print (media_temperature)
-# print (minima_temperatura.min())
-# print (massima_temperatura.max())
 solo_date = []
+# creo un array con solo le date da usare come asse delle x
 for d in df[(df.clientID=='iot_paride_2')].groupby(["date"]):
 	solo_date.append(d[0])
-	# print (d[0])
 
-# print (solo_date)
 row = 0
+# grafico con i dati delle temperature
 axs[row].set_title("Temperature del periodo")
 axs[row].plot(solo_date, media_temperature, label='media', linestyle = '--')
 axs[row].plot(solo_date, minima_temperatura, label='minima', linestyle = '-')
 axs[row].plot(solo_date, massima_temperatura, label='massima', linestyle = ':')
-# axs[row].set_title("Temperatura minima giornaliera")
-# axs[row].set_xlabel('Data')
 axs[row].set_ylabel('°C')
 
 for label in axs[row].xaxis.get_ticklabels():
-	# label is a Text instance
-	# label.set_color('tab:red')
 	label.set_rotation(45)
 	
 axs[row].legend()
 axs[row].grid(True)
-
 
 solo_date = []
 for d in df.groupby(["date"]):
 	solo_date.append(d[0])
 
 row = 1
+# grafico con l'umidità media giornaliera
 axs[row].set_title("Umidità media giornaliera nel periodo")
 axs[row].plot(solo_date, media_umidita, label='umidità (%)', linestyle = '-')
 axs[row].set_ylabel('Umidità (%)')
