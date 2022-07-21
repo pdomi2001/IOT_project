@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 df = pd.read_csv('registrazioni_new.txt', sep="\t", header=0)
 
@@ -37,9 +38,10 @@ df['date']  = df.apply(lambda x: str(x.time / 1000000)[:8] , axis = 1)
 df_filtered_1 = df[
 									(df.clientID=='iot_paride_1')
 								]
-
-temp_inizio_conteggio = 28.0
-
+# ----------------------------------------
+temp_inizio_conteggio = 28.0 # gradi centigradi
+delta_tempo_conteggio = 120 # secondi
+# ----------------------------------------
 df_filtered_1_d = df_filtered_1[
 									 (df_filtered_1.time >= inizio_periodo)
 									 & (df_filtered_1.time <= fine_periodo)
@@ -53,20 +55,51 @@ df_filtered_1_t = df_filtered_1_d[
 # print (df_filtered_2)
 # print (df_filtered_3)
 
+def ConvertiInSecondi(timestr):
+	print ("Converto [%s]" % timestr)
+	sec = timestr[-2:]
+	min = timestr[-4:-2]
+	ora = timestr[-6:-4]
+	giorno = timestr[6:8]
+	mese = timestr[4:6]
+	anno = timestr[0:4]
+	print (giorno, mese, anno)
+	secondi = sec + min * 60 + ora * 3600
+	giorniinizio = datetime(int(anno), int(mese), int(giorno)).toordinal()
+	secondi = secondi + 60 * 60 * 24 * giorniinizio 
+	# secondi = secondi + giorno * 3600 * 24
+	# secondi = secondi + mese * 3600 * 24 * 31
+	# secondi = secondi + anno * 3600 * 24 * 31 * 12
+	print(secondi)
+	return secondi
+
 lastcount = 0
 contabilizzatore = 0
 for elem in df_filtered_1_t['time']:
 	e = df_filtered_1_t[(df_filtered_1_t['time'] == elem)]
-	print(e['count_sent'])
+	# print(e['count_sent'])
+	# print(lastcount)
 	if lastcount != 0:
 		# if elem == lastelem + 1:
-		if e['count_sent'] == lastcount + 1:
+		if int(e['count_sent']) == lastcount + 1:
 			contabilizzatore = contabilizzatore + 1
+			endtime = e['time']
 		else:
+			print ("conteggio da %s a %s" % (starttime, endtime))
+			secondi = ConvertiInSecondi(endtime) - ConvertiInSecondi(starttime)
+			unita_contabilizzate = secondi / delta_tempo_conteggio
+			print ("unita contabilizzate", unita_contabilizzate)
 			print ("nuovo conteggio", contabilizzatore)
-	lastcount = e['count_sent']
+			starttime = e['time']
+	else:
+		starttime = e['time']
+	lastcount = int(e['count_sent'])
+	# print(lastcount)
+	# print(e['count_sent'])
+	# print(e)
+	# print('----')
 	# print (elem, count, df_filtered_1_t[(df_filtered_1_t['count_sent'] == elem)])
-	print (df_filtered_1_t[(df_filtered_1_t['time'] == elem)])
+	# print (df_filtered_1_t[(df_filtered_1_t['time'] == elem)])
 
 '''
 # axs.plot(df[(df.clientID=='iot_paride_2') & (df.time=="2022-04-05 10:2")].time, df[(df.clientID=='iot_paride_2') & (df.time=="2022-04-05 10:2")].t_termosifone)
