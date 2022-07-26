@@ -41,12 +41,19 @@ df_filtered_1 = df[
 # ----------------------------------------
 temp_inizio_conteggio = 28.0 # gradi centigradi
 delta_tempo_conteggio = 120 # secondi
+giornosingolo = False
 # ----------------------------------------
-df_filtered_1_d = df_filtered_1[
+#filtro un giorno solo
+if (giornosingolo):
+	df_filtered_1_d = df_filtered_1[
 									 (df_filtered_1.time >= inizio_periodo)
 									 & (df_filtered_1.time <= fine_periodo)
 									 & (df_filtered_1.t_termosifone <= 60)
-								 ]
+								]
+else:					
+	df_filtered_1_d = df_filtered_1[
+									 (df_filtered_1.t_termosifone <= 60)
+								]
 df_filtered_1_t = df_filtered_1_d[
 									(df_filtered_1_d.t_termosifone >= temp_inizio_conteggio)
 								]
@@ -56,44 +63,58 @@ df_filtered_1_t = df_filtered_1_d[
 # print (df_filtered_3)
 
 def ConvertiInSecondi(timestr):
-	print ("Converto [%s]" % timestr)
-	sec = timestr[-2:]
-	min = timestr[-4:-2]
-	ora = timestr[-6:-4]
-	giorno = timestr[6:8]
-	mese = timestr[4:6]
-	anno = timestr[0:4]
-	print (giorno, mese, anno)
+	# print ("Converto [%s]" % timestr)
+	sec = int(timestr[-2:])
+	min = int(timestr[-4:-2])
+	ora = int(timestr[-6:-4])
+	giorno = int(timestr[6:8])
+	mese = int(timestr[4:6])
+	anno = int(timestr[0:4])
+	# print (type(giorno), type(mese), type(anno))
 	secondi = sec + min * 60 + ora * 3600
 	giorniinizio = datetime(int(anno), int(mese), int(giorno)).toordinal()
 	secondi = secondi + 60 * 60 * 24 * giorniinizio 
 	# secondi = secondi + giorno * 3600 * 24
 	# secondi = secondi + mese * 3600 * 24 * 31
 	# secondi = secondi + anno * 3600 * 24 * 31 * 12
-	print(secondi)
+	# print(secondi)
 	return secondi
 
+elem = df_filtered_1_t['time'].values.tolist()[0]
+print (df_filtered_1_t[(df_filtered_1_t['time'] == elem)].values.tolist()[0])
 lastcount = 0
 contabilizzatore = 0
-for elem in df_filtered_1_t['time']:
-	e = df_filtered_1_t[(df_filtered_1_t['time'] == elem)]
+for elem in df_filtered_1_t['time'].values.tolist():
+	time, ip, str_sensore, h_stanza, t_stanza, t_termosifone, count_sent, count_wifi_c, count_mqtt_c, time2, data \
+		= df_filtered_1_t[(df_filtered_1_t['time'] == elem)].values.tolist()[0]
 	# print(e['count_sent'])
 	# print(lastcount)
+	time = str(time)
 	if lastcount != 0:
 		# if elem == lastelem + 1:
-		if int(e['count_sent']) == lastcount + 1:
-			contabilizzatore = contabilizzatore + 1
-			endtime = e['time']
+		# if int(e['count_sent']) == lastcount + 1:
+		if int(count_sent) == lastcount + 1:
+			# contabilizzatore = contabilizzatore + 1
+			endtime = time
+			# endtime = e['time'].astype("string")
+			# print("tipo endtime", type(endtime))
 		else:
-			print ("conteggio da %s a %s" % (starttime, endtime))
 			secondi = ConvertiInSecondi(endtime) - ConvertiInSecondi(starttime)
-			unita_contabilizzate = secondi / delta_tempo_conteggio
-			print ("unita contabilizzate", unita_contabilizzate)
+			print ("conteggio da %s a %s = %d" % (starttime, endtime, secondi))
+			unita_contabilizzate = int(secondi / delta_tempo_conteggio)
+			print ("unita contabilizzate %d / %d = %d" % (secondi, delta_tempo_conteggio, unita_contabilizzate))
+			contabilizzatore = contabilizzatore + unita_contabilizzate 
 			print ("nuovo conteggio", contabilizzatore)
-			starttime = e['time']
+			starttime = time
+			# starttime = e['time'].to_string()
+			# print("tipo starttime", type(starttime))
 	else:
-		starttime = e['time']
-	lastcount = int(e['count_sent'])
+		starttime = time
+		# starttime = e['time'].to_string()
+		# print("tipo starttime", type(starttime))
+	lastcount = count_sent
+	# lastcount = pd.to_numeric(e['count_sent'])
+	# print("tipo lastcount", type(lastcount))
 	# print(lastcount)
 	# print(e['count_sent'])
 	# print(e)
