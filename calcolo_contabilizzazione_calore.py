@@ -42,6 +42,7 @@ df_filtered_1 = df[
 temp_inizio_conteggio = 28.0 # gradi centigradi
 delta_tempo_conteggio = 120 # secondi
 giornosingolo = False
+verbose = False
 # ----------------------------------------
 #filtro un giorno solo
 if (giornosingolo):
@@ -81,7 +82,7 @@ def ConvertiInSecondi(timestr):
 	return secondi
 
 elem = df_filtered_1_t['time'].values.tolist()[0]
-print (df_filtered_1_t[(df_filtered_1_t['time'] == elem)].values.tolist()[0])
+# print (df_filtered_1_t[(df_filtered_1_t['time'] == elem)].values.tolist()[0])
 lastcount = 0
 contabilizzatore = 0
 for elem in df_filtered_1_t['time'].values.tolist():
@@ -100,11 +101,14 @@ for elem in df_filtered_1_t['time'].values.tolist():
 			# print("tipo endtime", type(endtime))
 		else:
 			secondi = ConvertiInSecondi(endtime) - ConvertiInSecondi(starttime)
-			print ("conteggio da %s a %s = %d" % (starttime, endtime, secondi))
+			if (verbose):
+				print ("conteggio da %s a %s = %d" % (starttime, endtime, secondi))
 			unita_contabilizzate = int(secondi / delta_tempo_conteggio)
-			print ("unita contabilizzate %d / %d = %d" % (secondi, delta_tempo_conteggio, unita_contabilizzate))
+			if (verbose):
+				print ("unita contabilizzate %d / %d = %d" % (secondi, delta_tempo_conteggio, unita_contabilizzate))
 			contabilizzatore = contabilizzatore + unita_contabilizzate 
-			print ("nuovo conteggio", contabilizzatore)
+			if (verbose):
+				print ("nuovo conteggio", contabilizzatore)
 			starttime = time
 			# starttime = e['time'].to_string()
 			# print("tipo starttime", type(starttime))
@@ -121,6 +125,8 @@ for elem in df_filtered_1_t['time'].values.tolist():
 	# print('----')
 	# print (elem, count, df_filtered_1_t[(df_filtered_1_t['count_sent'] == elem)])
 	# print (df_filtered_1_t[(df_filtered_1_t['time'] == elem)])
+
+print("Unita' contabilizzate: %d" % contabilizzatore)
 
 '''
 # axs.plot(df[(df.clientID=='iot_paride_2') & (df.time=="2022-04-05 10:2")].time, df[(df.clientID=='iot_paride_2') & (df.time=="2022-04-05 10:2")].t_termosifone)
