@@ -13,32 +13,36 @@ SECONDI_GIORNO = 60*60*24
 giorno = 20220414
 INIZIO_CONTEGGIO = 28.0 # gradi centigradi
 DELTA_T_CONTEGGIO = 120 # secondi
-GIORNOSINGOLO = True
-SHOWGRAFICO = True
+GIORNOSINGOLO = True # filtra i dati per il giorno indicato
+SHOWGRAFICO = True  # crea mostra un grafico con l'andamento della temperatura
+					# e delle attivazioni del conteggio
 
-VERBOSE = False
+VERBOSE = False # mostra più informazioni 
 # ----------------------------------------
-
-# inizio_periodo = 20220407000000
-# fine_periodo = 20220408000000
 
 inizio_periodo = giorno * 1e6
 fine_periodo = inizio_periodo + 1e6
 # (giorno+1)*1e6 = giorno*1e6+1*1e6 = inizio_periodo+1e6
-inizio_periodo_prec = inizio_periodo - giorni_precedenti * 1e6
+#inizio_periodo_prec = inizio_periodo - giorni_precedenti * 1e6
 # (giorno-giorni_precedenti)*1e6 = giorno*1e6-giorni_precedenti*1e6 = inizio_giorni - giorni_precedenti*1e6
 
 def converti_data_ora(time):
 	return int(time % 1e6) / 1e4
+def check_conteggio_attivo(temp):
+	if (temp >= INIZIO_CONTEGGIO):
+		return 1
+	else:
+		return 0
 
 #aggiungo un campo nel quale è presente solo l'orario
 df['time2']  = df["time"].apply(converti_data_ora)
 
-#aggiungo un campo nel quale è presente solo la data
+#aggiungo un campo nel quale è indicato se il conteggio è attivo
+df['conteggio_attivo']  = df["t_termosifone"].apply(check_conteggio_attivo)
 
+#aggiungo un campo nel quale è presente solo la data
 df['date']  = df["time"].apply(lambda x: str(x / 1e6)[:8])
 df_filtered_1 = df[df.clientID=='iot_paride_1']
-
 
 #filtro un giorno solo
 if GIORNOSINGOLO:
@@ -57,11 +61,10 @@ def ConvertiInSecondi(timestr):
 	return secondi + SECONDI_GIORNO * giorniinizio
 
 elem = df_filtered_1_t['time'].values.tolist()[0]
-# print (df_filtered_1_t[(df_filtered_1_t['time'] == elem)].values.tolist()[0])
 lastcount = 0
 contabilizzatore = 0
 for (time, ip, str_sensore, h_stanza, t_stanza, t_termosifone,
-	 count_sent, count_wifi_c, count_mqtt_c, time2, data) in df_filtered_1_t.values.tolist():
+	 count_sent, count_wifi_c, count_mqtt_c, time2, conteggio_attivo, data) in df_filtered_1_t.values.tolist():
 	time = str(time)
 	if lastcount:
 	
@@ -90,11 +93,12 @@ if (SHOWGRAFICO):
 
 	fig.set_facecolor('lightsteelblue')
 	fig.tight_layout()
-	df_ = df_filtered_1_t
+	df_ = df_filtered_1_d
 	axs.plot(df_.time2, df_.t_termosifone, label='remoto', linestyle = '--')
 	ax2 = axs.twinx()
-	ax2.plot(df_.time2, df_.t_stanza, label='integrato', color = 'red')
-	ax2.set_ylabel('°C')
+	ax2.plot(df_.time2, df_.conteggio_attivo, label='conteggio', color = 'red')
+	ax2.fill_between(df_.time2, 0, 1, where=df_.conteggio_attivo> 0, facecolor='green', alpha=0.5)
+	ax2.set_ylabel('')
 	ax2.legend()
 
 	axs.set_xlabel('time')
@@ -102,84 +106,7 @@ if (SHOWGRAFICO):
 	axs.grid(True)
 	axs.legend(loc='upper left')
 
-	# manager = plt.get_current_fig_manager()
-	# manager.full_screen_toggle()
-	# plt.savefig("termico.png", dpi=600)
+	# plt.axhline(y = INIZIO_CONTEGGIO, color = 'b', linestyle = ':', label = "blue line")
+	axs.axhline(y = INIZIO_CONTEGGIO, color = 'y', linestyle = '-', label = "blue line")
 	plt.title("Giorno :" + str(giorno))
 	plt.show()
-'''
-
-# axs.plot(df[(df.clientID=='iot_paride_2') & (df.time=="2022-04-05 10:2")].time, df[(df.clientID=='iot_paride_2') & (df.time=="2022-04-05 10:2")].t_termosifone)
-zona_x = 0
-zona_y = 0
-df_ = df_filtered_1_t
-# print(df_.time2, df_.t_termosifone)
-axs[zona_x].plot(df_.time2, df_.t_termosifone, label='remoto', linestyle = '--')
-ax2 = axs[zona_x].twinx()
-# axs[zona_x, zona_y].plot(df_.time2, df_.t_stanza, label='integrato')
-ax2.plot(df_.time2, df_.t_stanza, label='integrato', color = 'red')
-ax2.set_ylabel('°C')
-ax2.legend()
-# axs[zona_x, zona_y].plot(df_.time2, df_.t_stanza, label='integrato')
-# axs[zona_x, zona_y].plot(df_.time, df_.h_stanza)
-axs[zona_x].set_xlabel('time')
-axs[zona_x].set_ylabel('Sensore Termosifone')
-axs[zona_x].grid(True)
-axs[zona_x].legend(loc='upper left')
-# axs[zona_x, zona_y].ticker(loc='upper left')
-
-zona_x = 1
-zona_y = 0
-df_ = df_filtered_3_t
-axs[zona_x].plot(df_.time2, df_.t_termosifone, label='remoto', linestyle = '--')
-ax2 = axs[zona_x].twinx()
-ax2.plot(df_.time2, df_.t_stanza, label='integrato', color = 'red')
-ax2.set_ylabel('°C')
-ax2.legend()
-# axs[zona_x].plot(df_.time2, df_.t_stanza, label='integrato')
-# axs[zona_x, zona_y].plot(df_.time, df_.h_stanza)
-axs[zona_x].set_xlabel('time')
-axs[zona_x].set_ylabel('Sensore condiz.')
-axs[zona_x].legend()
-axs[zona_x].grid(True)
-axs[zona_x].legend(loc='upper left')
-
-zona_x = 2
-zona_y = 0
-df_ = df_filtered_2_t
-axs[zona_x].plot(df_.time2, df_.t_termosifone, label='remoto')
-# ax2 = axs[zona_x].twinx()
-# ax2.plot(df_.time2, df_.t_stanza, label='integrato')
-# axs[zona_x, zona_y].plot(df_.time2, df_.t_stanza, label='integrato')
-# ax2.set_ylabel('°C')
-axs[zona_x].plot(df_.time2, df_.t_stanza)
-axs[zona_x].set_xlabel('time')
-axs[zona_x].set_ylabel('Sensore stanza')
-axs[zona_x].legend()
-axs[zona_x].grid(True)
-
-
-# zona_x = 3
-# zona_y = 0
-
-# axs[zona_x].set_title(giorno)
-# axs[zona_x].plot(df_filtered_1_t.time2, df_filtered_1_t.h_stanza, label='termosifone')
-# axs[zona_x].plot(df_filtered_2_t.time2, df_filtered_2_t.h_stanza, label='stanza')
-# axs[zona_x].plot(df_filtered_3_t.time2, df_filtered_3_t.h_stanza, label='condizionatore')
-# axs[zona_x].set_xlabel('time')
-# axs[zona_x].set_ylabel('umidita\' nella stanza')
-# axs[zona_x].legend()
-# axs[zona_x].grid(True)
-
-
-# axs.plot(df[df.clientID=='iot_paride_3'].time, df[df.clientID=='iot_paride_3'].t_termosifone)
-# df[df.clientID=='iot_paride_1'].plot(x="time", y="t_termosifone", color="r")
-# df[df.clientID=='iot_paride_2'].plot(x="time", y="t_termosifone", color="g")
-# df[df.clientID=='iot_paride_3'].plot(x="time", y="t_termosifone", color="b")
-
-manager = plt.get_current_fig_manager()
-manager.full_screen_toggle()
-# plt.savefig("termico.png", dpi=600)
-plt.title("Giorno :" + str(giorno))
-plt.show()
-'''
