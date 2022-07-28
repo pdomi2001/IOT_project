@@ -4,10 +4,6 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 df = pd.read_csv('registrazioni_new.txt', sep="\t", header=0)
-fig, axs = plt.subplots(nrows = 3, ncols = 1)
-
-fig.set_facecolor('lightsteelblue')
-fig.tight_layout()
 
 # df_filtered = df[(df.clientID=='iot_paride_2') & (df.time=="2022-04-05 10:2")]
 giorni_precedenti = 2
@@ -17,9 +13,10 @@ SECONDI_GIORNO = 60*60*24
 giorno = 20220414
 INIZIO_CONTEGGIO = 28.0 # gradi centigradi
 DELTA_T_CONTEGGIO = 120 # secondi
-GIORNOSINGOLO = False
-VERBOSE = False
+GIORNOSINGOLO = True
+SHOWGRAFICO = True
 
+VERBOSE = False
 # ----------------------------------------
 
 # inizio_periodo = 20220407000000
@@ -32,7 +29,7 @@ inizio_periodo_prec = inizio_periodo - giorni_precedenti * 1e6
 # (giorno-giorni_precedenti)*1e6 = giorno*1e6-giorni_precedenti*1e6 = inizio_giorni - giorni_precedenti*1e6
 
 def converti_data_ora(time):
-	return int(time%1e6) / 1e6
+	return int(time % 1e6) / 1e4
 
 #aggiungo un campo nel quale è presente solo l'orario
 df['time2']  = df["time"].apply(converti_data_ora)
@@ -45,18 +42,20 @@ df_filtered_1 = df[df.clientID=='iot_paride_1']
 
 #filtro un giorno solo
 if GIORNOSINGOLO:
-	df_filtered_1_d = df_filtered_1[ df_filtered_1.time >= inizio_periodo
-								   & df_filtered_1.time <= fine_periodo
-								   & df_filtered_1.t_termosifone <= 60]
+	df_filtered_1_d = df_filtered_1[ (df_filtered_1.time >= inizio_periodo)
+								   & (df_filtered_1.time <= fine_periodo)
+								   & (df_filtered_1.t_termosifone <= 60)]
 else:
 	df_filtered_1_d = df_filtered_1[df_filtered_1.t_termosifone <= 60]
 df_filtered_1_t = df_filtered_1_d[df_filtered_1_d.t_termosifone >= INIZIO_CONTEGGIO]
+
 def ConvertiInSecondi(timestr):
 	sec,min_,ora = map(int,(timestr[-2:],timestr[-4:-2],timestr[-6:-4]))
 	giorno,mese,anno = map(int,(timestr[6:8],timestr[4:6],timestr[:4]))
 	secondi = sec + min_ * 60 + ora * 3600
 	giorniinizio = datetime(anno, mese, giorno).toordinal()
 	return secondi + SECONDI_GIORNO * giorniinizio
+
 elem = df_filtered_1_t['time'].values.tolist()[0]
 # print (df_filtered_1_t[(df_filtered_1_t['time'] == elem)].values.tolist()[0])
 lastcount = 0
@@ -86,7 +85,30 @@ for (time, ip, str_sensore, h_stanza, t_stanza, t_termosifone,
 
 print("Unita' contabilizzate: %d" % contabilizzatore)
 
+if (SHOWGRAFICO):
+	fig, axs = plt.subplots(nrows = 1, ncols = 1)
+
+	fig.set_facecolor('lightsteelblue')
+	fig.tight_layout()
+	df_ = df_filtered_1_t
+	axs.plot(df_.time2, df_.t_termosifone, label='remoto', linestyle = '--')
+	ax2 = axs.twinx()
+	ax2.plot(df_.time2, df_.t_stanza, label='integrato', color = 'red')
+	ax2.set_ylabel('°C')
+	ax2.legend()
+
+	axs.set_xlabel('time')
+	axs.set_ylabel('Sensore Termosifone')
+	axs.grid(True)
+	axs.legend(loc='upper left')
+
+	# manager = plt.get_current_fig_manager()
+	# manager.full_screen_toggle()
+	# plt.savefig("termico.png", dpi=600)
+	plt.title("Giorno :" + str(giorno))
+	plt.show()
 '''
+
 # axs.plot(df[(df.clientID=='iot_paride_2') & (df.time=="2022-04-05 10:2")].time, df[(df.clientID=='iot_paride_2') & (df.time=="2022-04-05 10:2")].t_termosifone)
 zona_x = 0
 zona_y = 0
